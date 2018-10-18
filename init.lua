@@ -13,10 +13,12 @@ function m.player_state(name, set)
             quests = {},
         }
         local ng = {}
-        for _,v in pairs(ps[name].quests) do
-            if m.quests[v.quest.name] then
+        for k,v in pairs(ps[name].quests) do
+            if m.quests[k] then
                 setmetatable(v, {__index = m.quest_meta})
-                table.insert(ng, v)
+                ng[k] = v
+            else
+                minetest.log("warning", "Discarding obsolete quest for " .. name .. ": " .. k)
             end
         end
         ps[name].quests = ng
