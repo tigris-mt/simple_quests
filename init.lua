@@ -1,16 +1,182 @@
-local m = {}
+local m = {
+    quests = {},
+}
 simple_quests = m
 
-local form = smartfs.create("simple_quests", function(state)
-    state:size(8, 8)
-end)
+local storage = minetest.get_mod_storage()
+local ps = {}
+function m.player_state(name, set)
+    if set then
+        storage:set_string("player:" .. name, minetest.serialize(set))
+    else
+        ps[name] = ps[name] or minetest.deserialize(storage:get("player:" .. name)) or {
+            quests = {},
+        }
+        for _,v in pairs(ps[name].quests) do
+            setmetatable(v, {__index = m.quest_meta})
+        end
+        return ps[name]
+    end
+end
 
-smartfs.add_to_inventory(form, "simple_quests.png", "Quests")
+m.quest_meta = {
+    set_step = function(self, step, param)
+        self.internal.previous = self.step
+        self.step = step
 
-minetest.register_chatcommand("quests", {
-    description = "Open your quest list",
-    func = function(name)
-        form:show(name)
+        self:save()
+    end,
+
+    do_step = function(self, param)
+        local done = m.quests[self.quest.name].steps[self.step](self, self.internal.previous, param)
+        if done then
+            self:do_done(done)
+        end
+
+        self:save()
+    end,
+
+    do_done = function(self, reason)
+        self.done = reason
+        m.quests[self.quest.name].done(self, self.done)
+        self:alert(self.done)
+        self:save()
+    end,
+
+    save = function(self)
+        m.player_state(self.quest.player, m.player_state(self.quest.player))
+    end,
+
+    alert = function(self, text)
+        minetest.chat_send_player(self.quest.player, ("[Quest: %s] %s"):format(m.quests[self.quest.name].shortdesc, text))
+    end,
+
+    objective = function(self, name, initial)
+        local o = initial or {}
+        o.description = o.description or "?"
+        o.desc_orig = o.description
+        o.name = name
+        o.complete = false
+        self.objectives[name] = o
+
+        self:alert("Objective acquired: " .. o.description)
+        self:save()
+    end,
+
+    objective_done = function(self, name)
+        local o = self.objectives[name]
+        o.complete = true
+        self:alert("Objective complete: " .. o.description)
+        self:save()
+
+        local have = false
+        for k,v in pairs(self.objectives) do
+            have = have or not v.complete
+        end
+
+        if not have then
+            self:do_step()
+        end
+    end,
+}
+
+function m.quest(quest, name)
+    return m.player_state(name).quests[quest]
+end
+
+function m.quest_active(quest, name, step)
+    local q = m.quest(quest, name)
+    if q and not q.done then
+        return step and q.step or q
+    end
+end
+
+function m.give(quest, name)
+    local s = m.player_state(name)
+    local sq = {
+        quest = {
+            name = quest,
+            player = name,
+        },
+        done = false,
+        internal = {},
+        objectives = {},
+    }
+    s.quests[quest] = sq
+    setmetatable(sq, {__index = m.quest_meta})
+    local q = m.quests[quest]
+
+    sq:alert("begun")
+
+    q.init(sq)
+    sq:set_step(sq.step)
+    return sq
+end
+
+function m.register(name, def)
+    def.shortdesc = def.shortdesc or ""
+    def.init = def.init or function(state) end
+    def.done = def.done or function(state, reason) end
+    def.steps = def.steps or {}
+
+    -- Default steps.
+    def.steps.done = function()
+        return "complete"
+    end
+    def.steps.fail = function()
+        return "failed"
+    end
+
+    def.objectives = def.objectives or {}
+    m.quests[name] = def
+end
+
+dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/" .. "ui.lua")
+
+simple_quests.register("simple_quests:test", {
+    shortdesc = "Test Quest",
+    init = function(state)
+        state.longdesc = "A quest of testing."
+        state.step = "done"
+
+        state:objective("q3", {
+            description = "Run /q3",
+        })
+        state:objective("q4", {
+            description = "Run /q4",
+        })
     end,
 })
 
+minetest.register_chatcommand("q1", {
+    func = function(name, param)
+        simple_quests.give("simple_quests:test", name)
+    end,
+})
+
+minetest.register_chatcommand("q2", {
+    func = function(name, param)
+        local q = m.quest_active("simple_quests:test", name)
+        if q then
+            q:do_done((param and param ~= "") and "complete" or "failed")
+        end
+    end,
+})
+
+minetest.register_chatcommand("q3", {
+    func = function(name, param)
+        local q = m.quest_active("simple_quests:test", name)
+        if q and q.objectives.q3 then
+            q:objective_done("q3")
+        end
+    end,
+})
+
+minetest.register_chatcommand("q4", {
+    func = function(name, param)
+        local q = m.quest_active("simple_quests:test", name)
+        if q and q.objectives.q4 then
+            q:objective_done("q4")
+        end
+    end,
+})
