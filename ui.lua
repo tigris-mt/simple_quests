@@ -50,14 +50,18 @@ local function overview(state)
 
     for _,quest in ipairs(state.simple_quests_quests) do
         local q = m.quests[quest.state.quest.name]
-        qlist:addItem(q.shortdesc .. " [" .. (quest.state.done or "active") .. "]")
+        if q then
+            qlist:addItem(q.shortdesc .. " [" .. (quest.state.done or "active") .. "]")
+        end
     end
 end
 
 local form = smartfs.create("simple_quests", function(state)
     state:size(8, 4)
     state:listbox(1, 0, 6, 4, "qlist", 0, false):onDoubleClick(function(self, state, idx, name)
-        minetest.after(0, qform.show, qform, state.location.player, {quest = state.simple_quests_quests[idx], parent = state.def})
+        if state.simple_quests_quests[idx] then
+            minetest.after(0, qform.show, qform, state.location.player, {quest = state.simple_quests_quests[idx], parent = state.def})
+        end
     end)
     overview(state)
     state:button(0, 0, 1, 1, "refresh", "Refresh"):onClick(function(self, state)

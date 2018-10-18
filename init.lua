@@ -12,9 +12,14 @@ function m.player_state(name, set)
         ps[name] = ps[name] or minetest.deserialize(storage:get("player:" .. name)) or {
             quests = {},
         }
+        local ng = {}
         for _,v in pairs(ps[name].quests) do
-            setmetatable(v, {__index = m.quest_meta})
+            if m.quests[v.quest.name] then
+                setmetatable(v, {__index = m.quest_meta})
+                table.insert(ng, v)
+            end
         end
+        ps[name].quests = ng
         return ps[name]
     end
 end
