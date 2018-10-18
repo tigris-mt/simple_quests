@@ -54,7 +54,7 @@ m.quest_meta = {
     objective = function(self, name, initial)
         local o = initial or {}
         o.description = o.description or "?"
-        o.desc_orig = o.description
+        o.desc_orig = o.desc_orig or o.description
         o.name = name
         o.complete = false
         self.objectives[name] = o
@@ -132,51 +132,4 @@ function m.register(name, def)
 end
 
 dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/" .. "ui.lua")
-
-simple_quests.register("simple_quests:test", {
-    shortdesc = "Test Quest",
-    init = function(state)
-        state.longdesc = "A quest of testing."
-        state.step = "done"
-
-        state:objective("q3", {
-            description = "Run /q3",
-        })
-        state:objective("q4", {
-            description = "Run /q4",
-        })
-    end,
-})
-
-minetest.register_chatcommand("q1", {
-    func = function(name, param)
-        simple_quests.give("simple_quests:test", name)
-    end,
-})
-
-minetest.register_chatcommand("q2", {
-    func = function(name, param)
-        local q = m.quest_active("simple_quests:test", name)
-        if q then
-            q:do_done((param and param ~= "") and "complete" or "failed")
-        end
-    end,
-})
-
-minetest.register_chatcommand("q3", {
-    func = function(name, param)
-        local q = m.quest_active("simple_quests:test", name)
-        if q and q.objectives.q3 then
-            q:objective_done("q3")
-        end
-    end,
-})
-
-minetest.register_chatcommand("q4", {
-    func = function(name, param)
-        local q = m.quest_active("simple_quests:test", name)
-        if q and q.objectives.q4 then
-            q:objective_done("q4")
-        end
-    end,
-})
+dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/" .. "objective_helpers.lua")
