@@ -66,8 +66,8 @@ local function update(state)
 end
 
 local form = smartfs.create("simple_quests", function(state)
-    state:size(8, 4)
-    local qlist = state:listbox(1, 0.25, 6, 4, "qlist", 0, false)
+    state:size(8, 8)
+    local qlist = state:listbox(1, 0.25, 6, 8, "qlist", 0, false)
     qlist:onClick(function(self, state, idx, name)
         if state.simple_quests_quests[idx] then
             state.simple_quests_selected = state.simple_quests_quests[idx].name
@@ -86,7 +86,7 @@ local form = smartfs.create("simple_quests", function(state)
     end)
 end)
 
-smartfs.add_to_inventory(form, "simple_quests.png", "Quests")
+smartfs.add_to_inventory(form, "simple_quests.png", "Quests", false)
 
 minetest.register_chatcommand("quests", {
     description = "Open your quest list",
