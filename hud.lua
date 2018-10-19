@@ -9,7 +9,7 @@ local function update(name)
 
     local sorted = m.sort_quests(name, true)
 
-    local text = "QUESTS"
+    local text = ""
 
     for _,v in ipairs(sorted) do
         if not v.state.done then
