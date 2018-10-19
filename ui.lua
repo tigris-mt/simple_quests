@@ -10,7 +10,13 @@ local function update(state)
     end
 
     table.sort(staging, function(a, b)
-        return (not a.state.done) or a.shortdesc < b.shortdesc
+        if a.state.done then
+            return false
+        elseif not a.state.done and b.state.done then
+            return true
+        else
+            return m.quests[a.name].shortdesc < m.quests[b.name].shortdesc
+        end
     end)
 
     for _,v in ipairs(staging) do
