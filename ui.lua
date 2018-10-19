@@ -10,13 +10,12 @@ local function update(state)
     end
 
     table.sort(staging, function(a, b)
-        if a.state.done then
-            return false
-        elseif not a.state.done and b.state.done then
+        if not a.state.done and b.state.done then
             return true
-        else
-            return m.quests[a.name].shortdesc < m.quests[b.name].shortdesc
+        elseif a.state.done and not b.state.done then
+            return false
         end
+        return m.quests[a.name].shortdesc <= m.quests[b.name].shortdesc
     end)
 
     for _,v in ipairs(staging) do
@@ -32,7 +31,12 @@ local function update(state)
             end
             table.sort(objectives, function(a, b)
                 local a, b = v.state.objectives[a], v.state.objectives[b]
-                return (not a.complete) or a.description < b.description
+                if not a.complete and b.complete then
+                    return true
+                elseif a.complete and not b.complete then
+                    return false
+                end
+                return a.description < b.description
             end)
             for _,ov in ipairs(objectives) do
                 table.insert(state.simple_quests_quests, {name = v.name, state = v.state, objective = ov})

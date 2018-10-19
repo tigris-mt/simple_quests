@@ -121,7 +121,7 @@ end
 function m.quest_active(quest, name, step)
     local q = m.quest(quest, name)
     if q and not q.done then
-        return step and q.step or q
+        return (step == "next" and q.step) or (step == "previous" and q.internal.previous) or q
     end
 end
 
@@ -172,3 +172,12 @@ end
 
 dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/" .. "ui.lua")
 dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/" .. "objective_helpers.lua")
+
+minetest.register_privilege("quest_debug", {
+    description = "Enables use of quest debugging commands if they are enabled.",
+    give_to_singleplayer = false,
+})
+
+if minetest.settings:get_bool("simple_quests.debug", false) then
+    dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/" .. "debug.lua")
+end
