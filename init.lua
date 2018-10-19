@@ -107,7 +107,10 @@ m.quest_meta = {
             table.insert(objectives, v)
         end
         table.sort(objectives, function(a, b)
-            return (not a.complete) or a.description < b.description
+            if a.complete ~= b.complete then
+                return not a.complete
+            end
+            return a.gametime < b.gametime
         end)
         for _,v in ipairs(objectives) do
             text = text .. "\n - " .. v.description .. " [" .. (v.complete and "complete" or "incomplete").. "]"
