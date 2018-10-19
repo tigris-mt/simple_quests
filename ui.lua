@@ -1,10 +1,10 @@
 local m = simple_quests
 
-local function update(state)
-    state.simple_quests_quests = {}
+function m.sort_quests(player, selected)
+    local ret = {}
     local staging = {}
 
-    local s = m.player_state(state.location.player)
+    local s = m.player_state(player)
     for k,qs in pairs(s.quests) do
         table.insert(staging, {name = k, state = qs})
     end
@@ -19,10 +19,10 @@ local function update(state)
     end)
 
     for _,v in ipairs(staging) do
-        table.insert(state.simple_quests_quests, v)
-        if v.name == state.simple_quests_selected then
+        table.insert(ret, v)
+        if v.name == selected or selected == true then
             if v.state.longdesc then
-                table.insert(state.simple_quests_quests, {name = v.name, state = v.state, text = v.state.longdesc})
+                table.insert(ret, {name = v.name, state = v.state, text = v.state.longdesc})
             end
 
             local objectives = {}
@@ -39,10 +39,17 @@ local function update(state)
                 return a.description < b.description
             end)
             for _,ov in ipairs(objectives) do
-                table.insert(state.simple_quests_quests, {name = v.name, state = v.state, objective = ov})
+                table.insert(ret, {name = v.name, state = v.state, objective = ov})
             end
         end
     end
+
+    return ret
+end
+
+local function update(state)
+    state.simple_quests_quests = {}
+    state.simple_quests_quests = m.sort_quests(state.location.player, state.simple_quests_selected)
 
     local qlist = state:get("qlist")
     qlist:clearItems()

@@ -26,6 +26,10 @@ function m.player_state(name, set)
     end
 end
 
+function m.change_callback(quest, player)
+    -- Override
+end
+
 m.quest_meta = {
     set_step = function(self, step, param)
         self.internal.previous = self.step
@@ -52,6 +56,7 @@ m.quest_meta = {
 
     save = function(self)
         m.player_state(self.quest.player, m.player_state(self.quest.player))
+        m.change_callback(self.quest.name, self.quest.player)
     end,
 
     alert = function(self, text)
@@ -171,6 +176,7 @@ function m.register(name, def)
 end
 
 dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/" .. "ui.lua")
+dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/" .. "hud.lua")
 dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/" .. "objective_helpers.lua")
 
 minetest.register_privilege("quest_debug", {
