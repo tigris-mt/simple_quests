@@ -1,49 +1,38 @@
 local m = simple_quests
 
-local function focus(state)
-    local qs = m.quest(state.param.quest.name, state.location.player)
-    local def = m.quests[qs.quest.name]
-    state:get("desc"):setText(def.shortdesc .. (def.longdesc and (" | " .. def.longdesc) or ""))
-
-    local objectives = {}
-    for k,v in pairs(qs.objectives) do
-        table.insert(objectives, v)
-    end
-    table.sort(objectives, function(a, b)
-        return (not a.complete) or a.description < b.description
-    end)
-
-    local olist = state:get("olist")
-    olist:clearItems()
-    for _,v in ipairs(objectives) do
-        olist:addItem(v.description .. " [" .. (v.complete and "complete" or "active") .. "]")
-    end
-end
-
-local qform = smartfs.create("qform", function(state)
-    state:size(8, 4)
-    state:label(1, 0, "desc", "")
-    state:listbox(3, 1, 5, 3, "olist", 0, false)
-    focus(state)
-    state:button(0, 0, 1, 1, "refresh", "Refresh"):onClick(function(self, state)
-        focus(state)
-    end)
-    state:button(0, 1, 1, 1, "back", "Back"):onClick(function(self, state)
-        minetest.after(0, state.param.parent.show, state.param.parent, state.location.player)
-    end)
-end)
-
-local function overview(state)
+local function update(state)
     state.simple_quests_quests = {}
+    local staging = {}
 
     local s = m.player_state(state.location.player)
     for k,qs in pairs(s.quests) do
-        table.insert(state.simple_quests_quests, {name = k, state = qs})
+        table.insert(staging, {name = k, state = qs})
     end
 
-    table.sort(state.simple_quests_quests, function(a, b)
+    table.sort(staging, function(a, b)
         return (not a.state.done) or a.shortdesc < b.shortdesc
     end)
+
+    for _,v in ipairs(staging) do
+        table.insert(state.simple_quests_quests, v)
+        if v.name == state.simple_quests_selected then
+            if v.state.longdesc then
+                table.insert(state.simple_quests_quests, {name = v.name, state = v.state, text = v.state.longdesc})
+            end
+
+            local objectives = {}
+            for k,_ in pairs(v.state.objectives) do
+                table.insert(objectives, k)
+            end
+            table.sort(objectives, function(a, b)
+                local a, b = v.state.objectives[a], v.state.objectives[b]
+                return (not a.complete) or a.description < b.description
+            end)
+            for _,ov in ipairs(objectives) do
+                table.insert(state.simple_quests_quests, {name = v.name, state = v.state, objective = ov})
+            end
+        end
+    end
 
     local qlist = state:get("qlist")
     qlist:clearItems()
@@ -51,21 +40,29 @@ local function overview(state)
     for _,quest in ipairs(state.simple_quests_quests) do
         local q = m.quests[quest.state.quest.name]
         if q then
-            qlist:addItem(q.shortdesc .. " [" .. (quest.state.done or "active") .. "]")
+            if quest.objective then
+                local o = quest.state.objectives[quest.objective]
+                qlist:addItem(" - " .. o.description .. " [" .. (o.complete and "complete" or "incomplete") .. "]")
+            elseif quest.text then
+                qlist:addItem(" : " .. quest.text)
+            else
+                qlist:addItem(q.shortdesc .. " [" .. (quest.state.done or "active") .. "]")
+            end
         end
     end
 end
 
 local form = smartfs.create("simple_quests", function(state)
     state:size(8, 4)
-    state:listbox(1, 0, 6, 4, "qlist", 0, false):onDoubleClick(function(self, state, idx, name)
+    state:listbox(1, 0, 6, 4, "qlist", 0, false):onClick(function(self, state, idx, name)
         if state.simple_quests_quests[idx] then
-            minetest.after(0, qform.show, qform, state.location.player, {quest = state.simple_quests_quests[idx], parent = state.def})
+            state.simple_quests_selected = state.simple_quests_quests[idx].name
         end
+        update(state)
     end)
-    overview(state)
+    update(state)
     state:button(0, 0, 1, 1, "refresh", "Refresh"):onClick(function(self, state)
-        overview(state)
+        update(state)
     end)
 end)
 
