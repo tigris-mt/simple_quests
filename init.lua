@@ -85,6 +85,22 @@ m.quest_meta = {
             self:do_step()
         end
     end,
+
+    superdesc_show = function(self, label)
+        local text = label
+        text = text .. "\n\n" .. m.quests[self.quest.name].shortdesc
+        if self.longdesc then
+            text = text .. "\n" .. self.longdesc
+        end
+        if self.superdesc then
+            text = text .. "\n\n" .. self.superdesc
+        end
+        minetest.after(0, minetest.show_formspec, self.quest.player, "simple_quests:superdesc", [[
+            size[8, 8]
+            textarea[0.1,0;7.9,7;;;]] .. minetest.formspec_escape(text) .. [[]
+            button_exit[3.25,7;1.5,1;proceed;Proceed]
+        ]])
+    end,
 }
 
 function m.quest(quest, name)
@@ -116,6 +132,8 @@ function m.give(quest, name)
     sq:alert("begun")
 
     q.init(sq)
+    sq:superdesc_show("Quest begun:")
+
     sq:set_step(sq.step)
     return sq
 end

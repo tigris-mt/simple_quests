@@ -42,9 +42,9 @@ local function update(state)
         if q then
             if quest.objective then
                 local o = quest.state.objectives[quest.objective]
-                qlist:addItem(" - " .. o.description .. " [" .. (o.complete and "complete" or "incomplete") .. "]")
+                qlist:addItem(" -Objective: " .. o.description .. " [" .. (o.complete and "complete" or "incomplete") .. "]")
             elseif quest.text then
-                qlist:addItem(" : " .. quest.text)
+                qlist:addItem(" -Info: " .. quest.text)
             else
                 qlist:addItem(q.shortdesc .. " [" .. (quest.state.done or "active") .. "]")
             end
@@ -54,14 +54,21 @@ end
 
 local form = smartfs.create("simple_quests", function(state)
     state:size(8, 4)
-    state:listbox(1, 0, 6, 4, "qlist", 0, false):onClick(function(self, state, idx, name)
+    local qlist = state:listbox(1, 0.25, 6, 4, "qlist", 0, false)
+    qlist:onClick(function(self, state, idx, name)
         if state.simple_quests_quests[idx] then
             state.simple_quests_selected = state.simple_quests_quests[idx].name
         end
         update(state)
     end)
+    qlist:onDoubleClick(function(self, state, idx, name)
+        if state.simple_quests_quests[idx] then
+            state.simple_quests_quests[idx].state:superdesc_show("Quest information:")
+        end
+    end)
     update(state)
-    state:button(0, 0, 1, 1, "refresh", "Refresh"):onClick(function(self, state)
+    state:label(0, -0.25, "label", "Single tap on quest to expand; double for full description.")
+    state:button(0, 0.25, 1, 1, "refresh", "Refresh"):onClick(function(self, state)
         update(state)
     end)
 end)
