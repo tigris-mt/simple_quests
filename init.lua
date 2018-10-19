@@ -69,6 +69,7 @@ m.quest_meta = {
         o.desc_orig = o.desc_orig or o.description
         o.name = name
         o.complete = false
+        o.gametime = minetest.get_gametime()
         self.objectives[name] = o
 
         self:alert("Objective acquired: " .. o.description)
@@ -140,6 +141,7 @@ function m.give(quest, name)
         done = false,
         internal = {},
         objectives = {},
+        gametime = minetest.get_gametime(),
 
         -- Default step is just done.
         step = "done",

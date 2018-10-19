@@ -10,12 +10,10 @@ function m.sort_quests(player, selected)
     end
 
     table.sort(staging, function(a, b)
-        if not a.state.done and b.state.done then
-            return true
-        elseif a.state.done and not b.state.done then
-            return false
+        if a.state.done ~= b.state.done then
+            return not a.state.done
         end
-        return m.quests[a.name].shortdesc <= m.quests[b.name].shortdesc
+        return a.state.gametime < b.state.gametime
     end)
 
     for _,v in ipairs(staging) do
@@ -31,12 +29,10 @@ function m.sort_quests(player, selected)
             end
             table.sort(objectives, function(a, b)
                 local a, b = v.state.objectives[a], v.state.objectives[b]
-                if not a.complete and b.complete then
-                    return true
-                elseif a.complete and not b.complete then
-                    return false
+                if a.complete ~= b.complete then
+                    return not a.complete
                 end
-                return a.description < b.description
+                return a.gametime < b.gametime
             end)
             for _,ov in ipairs(objectives) do
                 table.insert(ret, {name = v.name, state = v.state, objective = ov})
