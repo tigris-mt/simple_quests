@@ -135,6 +135,9 @@ function m.give(quest, name)
         done = false,
         internal = {},
         objectives = {},
+
+        -- Default step is just done.
+        step = "done",
     }
     s.quests[quest] = sq
     setmetatable(sq, {__index = m.quest_meta})
