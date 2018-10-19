@@ -95,6 +95,17 @@ m.quest_meta = {
         if self.superdesc then
             text = text .. "\n\n" .. self.superdesc
         end
+        text = text .. "\n\nObjectives:\n"
+        local objectives = {}
+        for _,v in pairs(self.objectives) do
+            table.insert(objectives, v)
+        end
+        table.sort(objectives, function(a, b)
+            return (not a.complete) or a.description < b.description
+        end)
+        for _,v in ipairs(objectives) do
+            text = text .. "\n - " .. v.description .. " [" .. (v.complete and "complete" or "incomplete").. "]"
+        end
         minetest.after(0, minetest.show_formspec, self.quest.player, "simple_quests:superdesc", [[
             size[8, 8]
             textarea[0.1,0;7.9,7;;;]] .. minetest.formspec_escape(text) .. [[]
