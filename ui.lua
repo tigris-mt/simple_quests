@@ -50,7 +50,9 @@ local function update(state)
     local qlist = state:get("qlist")
     qlist:clearItems()
 
-    for _,quest in ipairs(state.simple_quests_quests) do
+    local sidx = 0
+
+    for i,quest in ipairs(state.simple_quests_quests) do
         local q = m.quests[quest.state.quest.name]
         if q then
             if quest.objective then
@@ -59,10 +61,15 @@ local function update(state)
             elseif quest.text then
                 qlist:addItem(" -Info: " .. quest.text)
             else
+                if quest.name == state.simple_quests_selected then
+                    sidx = i
+                end
                 qlist:addItem(q.shortdesc .. " [" .. (quest.state.done or "active") .. "]")
             end
         end
     end
+
+    qlist:setSelected(sidx)
 end
 
 local form = smartfs.create("simple_quests", function(state)
