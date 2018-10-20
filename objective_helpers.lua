@@ -19,3 +19,30 @@ m.ohelp.count = {
         end
     end,
 }
+
+-- Event registry.
+m.ohelp.ereg = {
+    dig = function(quest, func)
+        minetest.register_on_dignode(function(pos, node, player)
+            if player and player:is_player() then
+                local name = player:get_player_name()
+                local q = m.quest_active(quest, name)
+                if q then
+                    func(q, pos, node)
+                end
+            end
+        end)
+    end,
+
+    place = function(quest, func)
+        minetest.register_on_placenode(function(pos, node, player)
+            if player and player:is_player() then
+                local name = player:get_player_name()
+                local q = m.quest_active(quest, name)
+                if q then
+                    func(q, pos, node)
+                end
+            end
+        end)
+    end,
+}
