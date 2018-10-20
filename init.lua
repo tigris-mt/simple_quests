@@ -48,6 +48,9 @@ m.quest_meta = {
     end,
 
     do_done = function(self, reason)
+        for _,v in ipairs(m.quests[self.quest.name].flags) do
+            self:flag(v)
+        end
         self.done = reason
         m.quests[self.quest.name].done(self, self.done)
         self:alert(self.done)
@@ -61,6 +64,14 @@ m.quest_meta = {
 
     alert = function(self, text)
         minetest.chat_send_player(self.quest.player, ("[Quest: %s] %s"):format(m.quests[self.quest.name].shortdesc, text))
+    end,
+
+    flag = function(self, name)
+        self.internal.flagged[name] = true
+    end,
+
+    flagged = function(self, name)
+        return not not self.internal.flagged[name]
     end,
 
     objective = function(self, name, initial)
@@ -143,7 +154,9 @@ function m.give(quest, name)
             player = name,
         },
         done = false,
-        internal = {},
+        internal = {
+            flagged = {},
+        },
         objectives = {},
         gametime = minetest.get_gametime(),
 
@@ -169,6 +182,7 @@ function m.register(name, def)
     def.init = def.init or function(state) end
     def.done = def.done or function(state, reason) end
     def.steps = def.steps or {}
+    def.flags = def.flags or {}
 
     -- Default steps.
     def.steps.done = function()
