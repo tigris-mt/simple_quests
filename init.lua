@@ -159,6 +159,7 @@ function m.give(quest, name)
     sq:superdesc_show("Quest begun:")
 
     sq:set_step(sq.step)
+    sq.internal.previous = nil
     return sq
 end
 

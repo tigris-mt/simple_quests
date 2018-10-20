@@ -55,3 +55,16 @@ minetest.register_chatcommand("sq_done", {
         m.quest(quest, name):do_done("complete")
     end,
 })
+
+minetest.register_chatcommand("sq_done_all", {
+    description = "Complete all quests.",
+    privs = {quest_debug = true},
+    func = function(name)
+        local s = m.player_state(name)
+        for _,v in pairs(s.quests) do
+            if not v.done then
+                v:do_done("complete")
+            end
+        end
+    end,
+})
