@@ -93,13 +93,14 @@ m.quest_meta = {
     end,
 
     superdesc_show = function(self, label)
+        local def = m.quests[self.quest.name]
         local text = label
-        text = text .. "\n\n" .. m.quests[self.quest.name].shortdesc
-        if self.longdesc then
-            text = text .. "\n" .. self.longdesc
+        text = text .. "\n\n" .. def.shortdesc
+        if def.longdesc then
+            text = text .. "\n" .. def.longdesc(self)
         end
-        if self.superdesc then
-            text = text .. "\n\n" .. self.superdesc
+        if def.superdesc then
+            text = text .. "\n\n" .. def.superdesc(self)
         end
         text = text .. "\n\nObjectives:\n"
         local objectives = {}
