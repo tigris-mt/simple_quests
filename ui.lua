@@ -13,7 +13,7 @@ function m.sort_quests(player, selected)
         if a.state.done ~= b.state.done then
             return not a.state.done
         end
-        return a.state.gametime < b.state.gametime
+        return a.state.gametime > b.state.gametime
     end)
 
     for _,v in ipairs(staging) do
@@ -32,7 +32,7 @@ function m.sort_quests(player, selected)
                 if a.complete ~= b.complete then
                     return not a.complete
                 end
-                return a.gametime < b.gametime
+                return a.gametime > b.gametime
             end)
             for _,ov in ipairs(objectives) do
                 table.insert(ret, {name = v.name, state = v.state, objective = ov})

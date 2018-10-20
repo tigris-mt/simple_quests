@@ -45,4 +45,16 @@ m.ohelp.ereg = {
             end
         end)
     end,
+
+    craft = function(quest, func)
+        minetest.register_on_craft(function(stack, player)
+            if player and player:is_player() then
+                local name = player:get_player_name()
+                local q = m.quest_active(quest, name)
+                if q then
+                    func(q, stack)
+                end
+            end
+        end)
+    end,
 }

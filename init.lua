@@ -110,7 +110,7 @@ m.quest_meta = {
             if a.complete ~= b.complete then
                 return not a.complete
             end
-            return a.gametime < b.gametime
+            return a.gametime > b.gametime
         end)
         for _,v in ipairs(objectives) do
             text = text .. "\n - " .. v.description .. " [" .. (v.complete and "complete" or "incomplete").. "]"

@@ -28,8 +28,13 @@ minetest.register_chatcommand("sq_oc", {
                 q:objective_done(objective)
             end
         end
+        -- Force all current objectives complete.
         if objective == "*" then
+            local l = {}
             for objective in pairs(q.objectives) do
+                table.insert(l, objective)
+            end
+            for _,objective in ipairs(l) do
                 d(objective)
             end
         else
